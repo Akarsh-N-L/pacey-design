@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { Brand, HEADLINE_MAX, LAYOUT_HINTS, LAYOUTS, Plan, SUPPORTING_MAX, type LayoutId } from "./schema";
+import { paletteProblem, textColors } from "./contrast";
 import { validatePlan, type Validation } from "./validate";
 
 const OLLAMA_URL = process.env.OLLAMA_URL ?? "http://localhost:11434";
@@ -23,13 +24,14 @@ export type PlanResult =
  */
 export function planSchemaFor(brand: Brand, layouts: readonly LayoutId[] = LAYOUTS) {
   const color = z.enum(brand.colors as [string, ...string[]]);
+  const textColor = z.enum(textColors(brand.colors) as [string, ...string[]]);
   const font = z.enum(brand.fonts);
   const { $schema, ...schema } = z.toJSONSchema(
     Plan.extend({
       layout: z.enum(layouts as [LayoutId, ...LayoutId[]]).describe("Which layout to use."),
       colors: z.object({
         background: color.describe("Fills the design."),
-        text: color.describe("Headline and supporting text. Must contrast strongly with background."),
+        text: textColor.describe("Headline and supporting text. Must contrast strongly with background."),
         accent: color.describe("Decorative shapes and highlights. Different from background."),
       }),
       fontRoles: z.object({
@@ -62,9 +64,11 @@ ${layouts}
 - headline: at most ${HEADLINE_MAX} characters, punchy, in the brand's voice. No hashtags or emoji.
 - supporting: at most ${SUPPORTING_MAX} characters, the key detail (what, when, where).
 - Facts: use ONLY facts given in the request. Never invent dates, days, times, prices, numbers, names, emails or links. If the request gives no details, write a line without them.
-- Language: English, plain letters and punctuation. No emoji, no other scripts.
-- colors: use ONLY the brand's colours. text on background must have strong contrast (at least 4.5:1): pair a dark colour with a light one. accent should differ from background.
+- Language: write EVERY word in English only, even if the request or brand voice is in another language. Never use Chinese, Japanese, Korean or any non-Latin script, and no emoji. Plain letters, digits and punctuation only.
+- colors: use ONLY the brand's colours${paletteProblem(brand.colors) ? ` for background and accent. ${paletteProblem(brand.colors)} Use one of those for text` : ""}. text on background must have strong contrast (at least 4.5:1): pair a dark colour with a light one. accent should differ from background.
 - fontRoles: use ONLY the brand's fonts.
+
+Before answering, check that the headline and supporting line are English only.
 
 Output: answer with ONLY a JSON object matching this schema. No prose, no markdown, no code fences.
 ${JSON.stringify(planSchemaFor(brand, offered), null, 2)}`;

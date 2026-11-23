@@ -1,4 +1,4 @@
-import { contrastRatio } from "./contrast";
+import { contrastRatio, textColors } from "./contrast";
 import { Brand, normalizeHex, Plan } from "./schema";
 
 /** "malformed" = wrong shape (missing fields, wrong types); "invalid" = right shape, breaks a brand rule. */
@@ -56,11 +56,11 @@ export function validatePlan(raw: unknown, brand: Brand, request: string): Valid
   }
   const plan = parsed.data;
   const reasons: string[] = [];
-  const palette = brand.colors.map(norm);
 
   for (const [role, c] of Object.entries(plan.colors)) {
-    if (!palette.includes(norm(c))) {
-      reasons.push(`colors.${role} ${c} is not a brand colour. Use one of: ${brand.colors.join(", ")}.`);
+    const allowed = role === "text" ? textColors(brand.colors) : brand.colors;
+    if (!allowed.map(norm).includes(norm(c))) {
+      reasons.push(`colors.${role} ${c} is not a brand colour. Use one of: ${allowed.join(", ")}.`);
     }
   }
   for (const [role, f] of Object.entries(plan.fontRoles)) {

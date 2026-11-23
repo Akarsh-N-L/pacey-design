@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { Design, DesignResult } from "../server/pipeline";
 import { LAYOUTS, type Brand, type LayoutId } from "../server/schema";
 import type { Attempt } from "../server/model";
+import { paletteProblem } from "../server/contrast";
 
 async function api<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(path, { headers: { "content-type": "application/json" }, ...init });
@@ -81,6 +82,7 @@ export function App() {
     });
 
   const saved = brands.some((b) => b.name.toLowerCase() === brand.name.trim().toLowerCase());
+  const palette = brand.colors.every((c) => /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(c)) ? paletteProblem(brand.colors) : null;
   const canGenerate = !busy && brand.name && brand.fonts.every(Boolean) && brand.voice && request.trim().length >= 3;
 
   return (
@@ -126,6 +128,7 @@ export function App() {
                 + Add colour
               </button>
             )}
+            {palette && <p className="warn">{palette}</p>}
           </div>
 
           <label>

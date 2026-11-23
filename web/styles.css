@@ -39,6 +39,7 @@ button.primary { background: var(--accent); border-color: var(--accent); padding
 .spread { justify-content: space-between; }
 
 .muted { color: var(--muted); }
+.warn { color: #8a4b00; font-size: 13px; background: #fff4e0; padding: 8px 10px; border-radius: 8px; margin: 0; }
 .error { color: var(--fail); font-size: 14px; background: #fdecec; padding: 10px 12px; border-radius: 8px; margin: 0; }
 
 .notice { border-radius: 12px; padding: 16px 20px; margin-bottom: 24px; background: var(--panel); border-left: 4px solid; }

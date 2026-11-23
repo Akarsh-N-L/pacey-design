@@ -1,5 +1,5 @@
 import type { Page } from "playwright";
-import { contrastRatio } from "./contrast";
+import { contrastRatio, textColors } from "./contrast";
 import type { FitResult } from "./render";
 import { normalizeHex, type Brand } from "./schema";
 
@@ -87,7 +87,9 @@ const isBigHeading = (label: string, t: { size: number; weight: number }) =>
   label === "headline" && (t.size >= 24 || (t.size >= 18.66 && t.weight >= 700));
 
 export function checkFacts(facts: Facts, brand: Brand, fit: FitResult[]): CheckResult[] {
-  const palette = new Set(brand.colors.map(normalizeHex));
+  const allowed = textColors(brand.colors.map(normalizeHex)); // brand colours, plus neutrals when needed for text
+  const palette = new Set(allowed);
+  const neutralNote = allowed.length > brand.colors.length ? ", plus neutral text" : "";
   const texts = facts.elements.filter((e) => e.text);
   const result = (rule: RuleId, failures: string[], ok: string): CheckResult => ({
     rule,
@@ -121,7 +123,7 @@ export function checkFacts(facts: Facts, brand: Brand, fit: FitResult[]): CheckR
   const overflow = fit.filter((f) => !f.fits).map((f) => `${f.role} doesn't fit even at ${f.fontSize}px`);
 
   return [
-    result("colours", [...offPalette], "Only brand colours used"),
+    result("colours", [...offPalette], `Only brand colours used${neutralNote}`),
     result("contrast", contrast, `All ${texts.length} text elements readable`),
     result("fonts", fonts, `Only ${brand.fonts.join(" and ")}`),
     result("margins", margins, "Everything inside the safe area"),

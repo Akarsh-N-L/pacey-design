@@ -6,7 +6,7 @@ Turns a brand and a one-line request into an on-brand social graphic at two size
 
 ![The app](docs/screenshots/ui.png)
 
-*Real run with `qwen2.5:7b`. The model's first answer invented "Sat", "10" and "2" for a request that gave no day or time. It was rejected with that reason, and the repaired plan passed.*
+*Real run with `qwen2.5:7b`: the sample brand and the brief's example request, with the model choosing the layout. Both sizes passed every brand check. When the model's first answer is rejected, the reasons appear under "rejected answers" in the notice.*
 
 ## Run it
 
@@ -124,7 +124,7 @@ I ran 10 varied requests through the full pipeline, across two quite different b
 
 | Request | Model wrote | Problem |
 | --- | --- | --- |
-| autumn menu | "pumpkin spice everything. 🍁南瓜香料新菜式来了！" | Chinese text and an emoji, drawn in a system fallback font ([image](docs/screenshots/caught-fallback-glyphs.png)). The fonts check passed because it only read the CSS. |
+| autumn menu | "pumpkin spice everything. 🍁南瓜香料新菜式来了！" | Chinese text and an emoji, drawn in a system fallback font. The fonts check passed because it only read the CSS. |
 | Sunday brunch launch | "Join us Sat 11am" | Wrong day, and an invented time |
 | hiring a head chef | "hire@sunbrunchco.com" | Invented email |
 | Series A | "$5M investment" | Invented amount |
@@ -158,6 +158,18 @@ The first request after Ollama starts takes about 14s, because the model has to 
 - fonts that only come in one weight (Bebas Neue, Pacifico)
 - a black-and-white 2-colour brand
 
+## Three test brands
+
+Real runs with `qwen2.5:7b` through the UI.
+
+| Brand | Request | Result |
+| --- | --- | --- |
+| Bloom Café (`#1F3A2E` `#F4EDE1` `#E07A5F`, Playfair Display + Inter) | Announce our new autumn menu | Ready to post. The first answer put a 🍁 in the headline; it was rejected and repaired. [Screenshot](docs/screenshots/brand-bloom-cafe.png) |
+| Ironclad Gym (`#111111` `#D7263D`, Bebas Neue + Roboto) | New year membership drive, no joining fee | Ready to post, banner layout: white text on the red block and on black. Black on red is only 3.81:1, so neutral white text was allowed. [Screenshot](docs/screenshots/brand-ironclad-gym.png) |
+| Sunny Pops (`#FFE066` `#FFFFFF` `#FFB3C6`, Fredoka + Nunito) | Launch our new mango ice pop | Ready to post, centered layout: near-black text on the brand yellow. All three colours are light (the best pair is 1.68:1), so neutral text was allowed. [Screenshot](docs/screenshots/brand-sunny-pops.png) |
+
+**Unreadable palettes (a deliberate bend of "brand colours only").** For Sunny Pops and Ironclad Gym, no two brand colours reach the 4.5:1 that text needs, so following the rule strictly means no design at all. A designer would set the text in black or white, so the app does the same: when no brand pair is readable, and only then, text may also use neutral `#111111` or `#ffffff` (`textColors` in `server/contrast.ts`). Backgrounds and accents stay brand colours only. The model is told about the neutrals, its JSON schema allows them for `text` only, validation enforces that, the brand check reports "Only brand colours used, plus neutral text", and the UI shows a note under the colours.
+
 ## Layouts and sizes
 
 Three layouts, each arranged differently for each shape rather than stretched:
@@ -186,7 +198,7 @@ These are places where the brief was open and I made a call:
 
 ## Tests
 
-`npm test` runs 53 tests on the tricky logic:
+`npm test` runs 57 tests on the tricky logic:
 
 - **Brand input:** colours are normalised to `#rrggbb`, and the name length is capped.
 

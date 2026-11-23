@@ -26,5 +26,57 @@
       "Inter"
     ],
     "voice": "warm, playful, a little cheeky"
+  },
+  {
+    "name": "Northpeak Finance",
+    "colors": [
+      "#0b1f3a",
+      "#ffffff",
+      "#2f80ed",
+      "#c9a227"
+    ],
+    "fonts": [
+      "Montserrat",
+      "Lora"
+    ],
+    "voice": "Clear, confident and trustworthy. No jargon, no hype"
+  },
+  {
+    "name": "Sunny Pops",
+    "colors": [
+      "#ffe066",
+      "#ffffff",
+      "#ffb3c6"
+    ],
+    "fonts": [
+      "Fredoka",
+      "Nunito"
+    ],
+    "voice": "Bubbly, playful, kid-friendly. Lots of energy."
+  },
+  {
+    "name": "Bloom Café",
+    "colors": [
+      "#1f3a2e",
+      "#f4ede1",
+      "#e07a5f"
+    ],
+    "fonts": [
+      "Playfair Display",
+      "Inter"
+    ],
+    "voice": "Warm, relaxed, a little cheeky. Never corporate."
+  },
+  {
+    "name": "Ironclad Gym",
+    "colors": [
+      "#111111",
+      "#d7263d"
+    ],
+    "fonts": [
+      "Bebas Neue",
+      "Roboto"
+    ],
+    "voice": "Blunt, motivating, no excuses."
   }
 ]

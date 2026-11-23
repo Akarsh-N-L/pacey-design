@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { contrastRatio } from "./contrast";
+import { contrastRatio, paletteProblem, textColors } from "./contrast";
 import { Brand } from "./schema";
 import { validatePlan } from "./validate";
 
@@ -100,5 +100,35 @@ describe("validatePlan", () => {
   it("rejects malformed shapes with readable reasons", () => {
     expect(reasonsOf("not an object").length).toBeGreaterThan(0);
     expect(reasonsOf({}).length).toBeGreaterThan(0);
+  });
+});
+
+describe("paletteProblem", () => {
+  it("passes a palette with a readable pair", () => {
+    expect(paletteProblem(["#1F3A2E", "#F4EDE1", "#E07A5F"])).toBeNull();
+  });
+  it("names the best pair when none reaches 4.5:1", () => {
+    expect(paletteProblem(["#FFE066", "#FFFFFF", "#FFB3C6"])).toMatch(/#FFFFFF and #FFB3C6 is 1.68:1/);
+    expect(paletteProblem(["#111111", "#D7263D"])).toMatch(/3.81:1/);
+  });
+});
+
+describe("neutral text for unreadable palettes", () => {
+  const pastel: Brand = { name: "Sunny Pops", colors: ["#ffe066", "#ffffff", "#ffb3c6"], fonts: ["Fredoka", "Nunito"], voice: "bubbly" };
+  const plan = {
+    layout: "centered",
+    headline: "Mango pops are here",
+    supporting: "Our new mango ice pop.",
+    colors: { background: "#ffe066", text: "#111111", accent: "#ffb3c6" },
+    fontRoles: { headline: "Fredoka", body: "Nunito" },
+  };
+  it("adds neutrals only when no brand pair is readable", () => {
+    expect(textColors(pastel.colors)).toEqual([...pastel.colors, "#111111"]);
+    expect(textColors(["#1a1a1a", "#fff7ed"])).toEqual(["#1a1a1a", "#fff7ed"]);
+  });
+  it("allows neutral text, but not a neutral background", () => {
+    expect(validatePlan(plan, pastel, "Launch our new mango ice pop").ok).toBe(true);
+    const r = validatePlan({ ...plan, colors: { ...plan.colors, background: "#111111", text: "#ffffff" } }, pastel, "Launch our new mango ice pop");
+    expect(r.ok ? [] : r.reasons).toEqual([expect.stringMatching(/colors.background #111111 is not a brand colour/)]);
   });
 });
