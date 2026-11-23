@@ -8,6 +8,10 @@ Turns a brand and a one-line request into an on-brand social graphic at two size
 
 *Real run with `qwen2.5:7b`: the sample brand and the brief's example request, with the model choosing the layout. Both sizes passed every brand check. When the model's first answer is rejected, the reasons appear under "rejected answers" in the notice.*
 
+### Demo (1 min)
+
+<!-- REPLACE THIS LINE: in GitHub's README editor, drag pacey-demo.mp4 here. GitHub uploads it and inserts a https://github.com/user-attachments/assets/... link, which plays inline. -->
+
 ## Run it
 
 You need Node 22+ and [Ollama](https://ollama.com).
