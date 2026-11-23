@@ -10,7 +10,9 @@ Turns a brand and a one-line request into an on-brand social graphic at two size
 
 ### Demo (1 min)
 
-<!-- REPLACE THIS LINE: in GitHub's README editor, drag pacey-demo.mp4 here. GitHub uploads it and inserts a https://github.com/user-attachments/assets/... link, which plays inline. -->
+https://github.com/user-attachments/assets/6162f7fe-7bab-4727-8a9f-a2bb643a6d8f
+
+
 
 ## Run it
 
