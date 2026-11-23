@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { Brand, HEADLINE_MAX, LAYOUT_HINTS, LAYOUTS, Plan, SUPPORTING_MAX, type LayoutId } from "./schema";
-import { paletteProblem, textColors } from "./contrast";
-import { validatePlan, type Validation } from "./validate";
+import { paletteProblem, readablePairs, textColors } from "./contrast";
+import { factsIn, validatePlan, type Validation } from "./validate";
 
 const OLLAMA_URL = process.env.OLLAMA_URL ?? "http://localhost:11434";
 export const MODEL = process.env.OLLAMA_MODEL ?? "qwen2.5:7b";
@@ -66,6 +66,7 @@ ${layouts}
 - Facts: use ONLY facts given in the request. Never invent dates, days, times, prices, numbers, names, emails or links. If the request gives no details, write a line without them.
 - Language: write EVERY word in English only, even if the request or brand voice is in another language. Never use Chinese, Japanese, Korean or any non-Latin script, and no emoji. Plain letters, digits and punctuation only.
 - colors: use ONLY the brand's colours${paletteProblem(brand.colors) ? ` for background and accent. ${paletteProblem(brand.colors)} Use one of those for text` : ""}. text on background must have strong contrast (at least 4.5:1): pair a dark colour with a light one. accent should differ from background.
+  Readable combinations: ${readablePairs(brand.colors).join("; ")}. Pick text and background from one of these.
 - fontRoles: use ONLY the brand's fonts.
 
 Before answering, check that the headline and supporting line are English only.
@@ -78,7 +79,8 @@ Colours: ${brand.colors.join(", ")}
 Fonts: ${brand.fonts.join(", ")}
 Voice: ${brand.voice}
 
-Request: ${request}`;
+Request: ${request}
+Facts in the request you may use: ${factsIn(request)}`;
 
   return [
     { role: "system", content: system },

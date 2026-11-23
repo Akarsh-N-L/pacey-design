@@ -19,7 +19,7 @@ export const SIZES = {
 export type SizeId = keyof typeof SIZES;
 
 type Box = { x: number; y: number; w: number; h: number };
-type Ctx = { plan: Plan; brand: Brand; size: Size; inner: Box; tall: boolean };
+type Ctx = { plan: Plan; brand: Brand; size: Size; inner: Box; tall: boolean; spare: string[] };
 
 export const escapeHtml = (s: string) =>
   s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
@@ -52,6 +52,17 @@ function text(role: string, b: Box, value: string, o: TextOpts) {
 
 const shape = (b: Box, color: string, bleed = false) =>
   `<div class="shape" data-role="accent"${bleed ? " data-bleed" : ""} style="${pos(b)}background:${color};"></div>`;
+
+const STRIPE = 28;
+/** Stripe split into equal segments, one per spare brand colour (see spareColors). */
+function stripe(c: Ctx, b: Box) {
+  const n = c.spare.length;
+  const along = b.w >= b.h; // segments run along the stripe's long side
+  return c.spare.map((color, i) => {
+    const [from, to] = [Math.round(((along ? b.w : b.h) * i) / n), Math.round(((along ? b.w : b.h) * (i + 1)) / n)];
+    return shape(along ? { ...b, x: b.x + from, w: to - from } : { ...b, y: b.y + from, h: to - from }, color, true);
+  });
+}
 
 /** Of the given colours, the one most readable on `bg`. */
 export const mostReadableOn = (bg: string, options: string[]) =>
@@ -106,6 +117,7 @@ function centered(c: Ctx) {
       align: "center",
     }),
     brandMark(c, { x: inner.x, y: inner.y + inner.h - BRAND_MARK_H, w: inner.w, h: BRAND_MARK_H }, fg, "center"),
+    ...stripe(c, { x: 0, y: size.height - STRIPE, w: size.width, h: STRIPE }),
   ];
 }
 
@@ -124,6 +136,7 @@ function split(c: Ctx) {
   const h = headlineOpts(c, fg);
   return [
     shape(block, accent, true),
+    ...stripe(c, tall ? { x: 0, y: block.h, w: size.width, h: STRIPE } : { x: block.w, y: 0, w: STRIPE, h: size.height }),
     text("headline", { x: col.x, y: col.y, w: col.w, h: mid - 32 - col.y }, plan.headline, {
       ...h,
       size: tall ? h.size : 96, // narrow column on portrait
@@ -144,6 +157,7 @@ function banner(c: Ctx) {
   const foot = inner.y + inner.h - BRAND_MARK_H;
   return [
     shape(band, accent, true),
+    ...stripe(c, { x: 0, y: band.h, w: size.width, h: STRIPE }),
     text("headline", { x: inner.x, y: inner.y, w: inner.w, h: band.h - 64 - inner.y }, plan.headline, {
       ...headlineOpts(c, mostReadableOn(accent, [fg, background])),
       valign: "end",
@@ -154,6 +168,15 @@ function banner(c: Ctx) {
   ];
 }
 
+/**
+ * Brand colours the plan didn't use (e.g. the third colour when text is neutral, or the
+ * 4th/5th colours of a big palette) go in a stripe beside the layout's colour block so they still show.
+ */
+export function spareColors(plan: Plan, brand: Brand): string[] {
+  const used = Object.values(plan.colors).map((c) => c.toLowerCase());
+  return brand.colors.filter((c) => !used.includes(c.toLowerCase()));
+}
+
 const LAYOUT_FNS: Record<Plan["layout"], (c: Ctx) => string[]> = { centered, split, banner };
 
 /** fontFaceCss is injected by the renderer (local @font-face rules). */
@@ -161,7 +184,8 @@ export function renderLayout(plan: Plan, brand: Brand, sizeId: SizeId, fontFaceC
   const size = SIZES[sizeId];
   const { width: W, height: H, safe } = size;
   const inner = { x: safe.left, y: safe.top, w: W - safe.left - safe.right, h: H - safe.top - safe.bottom };
-  const body = LAYOUT_FNS[plan.layout]({ plan, brand, size, inner, tall: H / W > 1.5 }).join("\n");
+  const spare = spareColors(plan, brand);
+  const body = LAYOUT_FNS[plan.layout]({ plan, brand, size, inner, tall: H / W > 1.5, spare }).join("\n");
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><style>
 ${fontFaceCss}

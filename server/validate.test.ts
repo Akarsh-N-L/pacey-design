@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { contrastRatio, paletteProblem, textColors } from "./contrast";
+import { contrastRatio, paletteProblem, readablePairs, textColors } from "./contrast";
 import { Brand } from "./schema";
 import { validatePlan } from "./validate";
 
@@ -66,9 +66,14 @@ describe("validatePlan", () => {
   });
 
   it("allows facts that the request or brand name gave, in another form", () => {
-    const plan = { ...good, supporting: "Dec 24 - Jan 2. Thu 3pm. 20% off. Sunday vibes." };
+    const plan = { ...good, supporting: "Dec 24 - Jan 2. Thu 3pm. 20% off. Love, Sunday Brunch Co." };
     expect(reasonsOf(plan, "Closed 24 Dec to 2 Jan; webinar Thursday 3pm; 20% off")).toEqual([]);
     expect(reasonsOf({ ...good, supporting: "She sat down at the sun lounger." }, "relaxing")).toEqual([]);
+  });
+
+  it("treats the brand name as a name, not as a fact", () => {
+    // "Sunday Brunch Co" may appear, but its "Sunday" doesn't make Sunday a fact of every request.
+    expect(reasonsOf({ ...good, supporting: "Live jazz this Sunday." }, "Live jazz night this weekend").join()).toMatch(/"Sunday"/);
   });
 
   it("rejects a colour outside the palette", () => {
@@ -130,5 +135,16 @@ describe("neutral text for unreadable palettes", () => {
     expect(validatePlan(plan, pastel, "Launch our new mango ice pop").ok).toBe(true);
     const r = validatePlan({ ...plan, colors: { ...plan.colors, background: "#111111", text: "#ffffff" } }, pastel, "Launch our new mango ice pop");
     expect(r.ok ? [] : r.reasons).toEqual([expect.stringMatching(/colors.background #111111 is not a brand colour/)]);
+  });
+});
+
+describe("readablePairs", () => {
+  it("lists readable text-on-background combinations, best first", () => {
+    const pairs = readablePairs(["#ffe066", "#fffff1", "#c9ffb3", "#ce5412", "#9932ae"]);
+    expect(pairs.slice(0, 2)).toContain("text #9932ae on background #fffff1 (6.1:1)");
+    expect(pairs.join()).not.toMatch(/#ce5412 on background #fffff1/); // 4.25:1
+  });
+  it("never offers a neutral background", () => {
+    expect(readablePairs(["#ffe066", "#ffffff", "#ffb3c6"]).join()).not.toMatch(/background #111111/);
   });
 });

@@ -1,19 +1,5 @@
 [
   {
-    "name": "Launch event of gym",
-    "colors": [
-      "#111111",
-      "#ff0000",
-      "#00ff33",
-      "#e1dbdb"
-    ],
-    "fonts": [
-      "Playfair Display",
-      "Playfair Display"
-    ],
-    "voice": "Exciting"
-  },
-  {
     "name": "Sunday Brunch Co",
     "colors": [
       "#1a1a1a",
@@ -42,19 +28,6 @@
     "voice": "Clear, confident and trustworthy. No jargon, no hype"
   },
   {
-    "name": "Sunny Pops",
-    "colors": [
-      "#ffe066",
-      "#ffffff",
-      "#ffb3c6"
-    ],
-    "fonts": [
-      "Fredoka",
-      "Nunito"
-    ],
-    "voice": "Bubbly, playful, kid-friendly. Lots of energy."
-  },
-  {
     "name": "Bloom Café",
     "colors": [
       "#1f3a2e",
@@ -78,5 +51,35 @@
       "Roboto"
     ],
     "voice": "Blunt, motivating, no excuses."
+  },
+  {
+    "name": "Launch event of gym",
+    "colors": [
+      "#14213d",
+      "#fcf6ec",
+      "#e63946",
+      "#8ecae6",
+      "#888888"
+    ],
+    "fonts": [
+      "Playfair Display",
+      "Playfair Display"
+    ],
+    "voice": "Exciting"
+  },
+  {
+    "name": "Sunny Pops",
+    "colors": [
+      "#ffe066",
+      "#fffff1",
+      "#c9ffb3",
+      "#ce5412",
+      "#9932ae"
+    ],
+    "fonts": [
+      "Lora",
+      "Inter"
+    ],
+    "voice": "Bubbly, playful, kid-friendly. Lots of energy."
   }
 ]

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mostReadableOn, renderLayout, SIZES, type SizeId } from "./layouts";
+import { mostReadableOn, renderLayout, spareColors, SIZES, type SizeId } from "./layouts";
 import { LAYOUTS, type Brand, type Plan } from "./schema";
 
 const brand: Brand = {
@@ -63,5 +63,24 @@ describe("mostReadableOn", () => {
   it("picks the higher-contrast option", () => {
     expect(mostReadableOn("#ffffff", ["#eeeeee", "#111111"])).toBe("#111111");
     expect(mostReadableOn("#000000", ["#eeeeee", "#111111"])).toBe("#eeeeee");
+  });
+});
+
+describe("spareColors", () => {
+  const b = { name: "Sunny Pops", colors: ["#ffe066", "#fffff1", "#c9ffb3", "#ce5412", "#9932ae"], fonts: ["Lora", "Inter"] as [string, string], voice: "bubbly" };
+  const p = (colors: Plan["colors"]): Plan => ({
+    layout: "centered", headline: "Hi", supporting: "Hello.", colors, fontRoles: { headline: "Lora", body: "Inter" },
+  });
+  it("draws every brand colour the plan left out", () => {
+    const plan = p({ background: "#fffff1", text: "#9932ae", accent: "#c9ffb3" });
+    expect(spareColors(plan, b)).toEqual(["#ffe066", "#ce5412"]);
+    for (const layout of LAYOUTS) {
+      const html = renderLayout({ ...plan, layout }, b, "portrait");
+      expect(html).toContain("background:#ffe066");
+      expect(html).toContain("background:#ce5412");
+    }
+  });
+  it("is empty when the plan uses every brand colour", () => {
+    expect(spareColors(p({ background: "#fffff1", text: "#9932ae", accent: "#c9ffb3" }), { ...b, colors: ["#fffff1", "#9932ae", "#c9ffb3"] })).toEqual([]);
   });
 });

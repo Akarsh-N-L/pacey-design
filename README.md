@@ -164,11 +164,25 @@ Real runs with `qwen2.5:7b` through the UI.
 
 | Brand | Request | Result |
 | --- | --- | --- |
-| Bloom Café (`#1F3A2E` `#F4EDE1` `#E07A5F`, Playfair Display + Inter) | Announce our new autumn menu | Ready to post. The first answer put a 🍁 in the headline; it was rejected and repaired. [Screenshot](docs/screenshots/brand-bloom-cafe.png) |
-| Ironclad Gym (`#111111` `#D7263D`, Bebas Neue + Roboto) | New year membership drive, no joining fee | Ready to post, banner layout: white text on the red block and on black. Black on red is only 3.81:1, so neutral white text was allowed. [Screenshot](docs/screenshots/brand-ironclad-gym.png) |
-| Sunny Pops (`#FFE066` `#FFFFFF` `#FFB3C6`, Fredoka + Nunito) | Launch our new mango ice pop | Ready to post, centered layout: near-black text on the brand yellow. All three colours are light (the best pair is 1.68:1), so neutral text was allowed. [Screenshot](docs/screenshots/brand-sunny-pops.png) |
+| Bloom Café (`#1F3A2E` `#F4EDE1` `#E07A5F`, Playfair Display + Inter) | Announce our new autumn menu | Ready to post, centered layout: dark green on cream, terracotta accent bar. Passed on the first answer. [Screenshot](docs/screenshots/brand-bloom-cafe.png) |
+| Ironclad Gym (`#111111` `#D7263D`, Bebas Neue + Roboto) | New year membership drive, no joining fee | Ready to post, banner layout: "NEW YEAR, NEW YOU" in white on the red block, supporting line in white on black. Black on red is only 3.81:1, so neutral white text was allowed. [Screenshot](docs/screenshots/brand-ironclad-gym.png) |
+| Sunny Pops (`#FFE066` `#FFFFF1` `#C9FFB3` `#CE5412` `#9932AE`, Lora + Inter) | Launch our new mango ice pop | Ready to post, split layout: off-white text on purple, pale green block, yellow and orange in the spare stripe. The first answer put orange text on off-white (4.25:1). The repair listed the readable combinations, and the model fixed it on the next try. [Screenshot](docs/screenshots/brand-sunny-pops.png) |
 
-**Unreadable palettes (a deliberate bend of "brand colours only").** For Sunny Pops and Ironclad Gym, no two brand colours reach the 4.5:1 that text needs, so following the rule strictly means no design at all. A designer would set the text in black or white, so the app does the same: when no brand pair is readable, and only then, text may also use neutral `#111111` or `#ffffff` (`textColors` in `server/contrast.ts`). Backgrounds and accents stay brand colours only. The model is told about the neutrals, its JSON schema allows them for `text` only, validation enforces that, the brand check reports "Only brand colours used, plus neutral text", and the UI shows a note under the colours.
+**Sunny Pops in every layout.** Real runs for "Launch our new mango ice pop", with the layout chosen in the UI's Layout picker. All six pass every check, and all five brand colours show. Purple, off-white and pale green fill the plan's background, text and accent roles; yellow and orange, which the plan didn't use, share the spare-colour stripe.
+
+| | 1080 × 1350 (portrait) | 1080 × 1920 (story) |
+| --- | --- | --- |
+| centered | ![](docs/screenshots/sunny-pops-centered-portrait.png) | ![](docs/screenshots/sunny-pops-centered-story.png) |
+| split | ![](docs/screenshots/sunny-pops-split-portrait.png) | ![](docs/screenshots/sunny-pops-split-story.png) |
+| banner | ![](docs/screenshots/sunny-pops-banner-portrait.png) | ![](docs/screenshots/sunny-pops-banner-story.png) |
+
+**Unreadable palettes (a deliberate bend of "brand colours only").** For Ironclad Gym (and an all-pastel palette like `#FFE066` `#FFFFFF` `#FFB3C6`), no two brand colours reach the 4.5:1 that text needs, so following the rule strictly means no design at all. A designer would set the text in black or white, so the app does the same: when no brand pair is readable, and only then, text may also use neutral `#111111` or `#ffffff` (`textColors` in `server/contrast.ts`). Backgrounds and accents stay brand colours only. The model is told about the neutrals, its JSON schema allows them for `text` only, validation enforces that, the brand check reports "Only brand colours used, plus neutral text", and the UI shows a note under the colours.
+
+**The model is told which facts it has.** It kept inventing "Sat 10am": each repair removed one token and the next answer brought another back. Now the user message lists the facts the request actually gives ("Facts in the request you may use: none. So write NO days, dates, times, numbers, prices or links at all."), and an invented-fact rejection repeats that list (`factsIn` in `server/validate.ts`). Facts come from the request only. The brand name may appear in copy, but "Sunday" in "Sunday Brunch Co" no longer makes Sunday a fact of every post. On 10 fact-tempting requests, 10 of 10 produced a valid plan with 0 invented-fact rejections. Meaning-level inventions like "Today only" still get through (see known limits).
+
+**The model is told which colours work together.** A 7B model can't work out contrast ratios. With a 5-colour palette it kept picking orange text on cream (4.25:1) and failed all 3 tries. Now the prompt, and the repair message after a contrast failure, list every readable text-on-background combination, best first (`readablePairs` in `server/contrast.ts`). On that brand, 6 of 6 real requests then produced a valid plan.
+
+**Every brand colour shows.** The plan has three colour roles (background, text, accent), so a fourth or fifth brand colour, or the third one when text is neutral, would otherwise never appear. Code puts every unused brand colour in a 28px stripe, split into equal segments, beside the layout's colour block: along the block's edge in split and banner, along the bottom edge in centered (`spareColors` in `server/layouts.ts`).
 
 ## Layouts and sizes
 
@@ -198,7 +212,7 @@ These are places where the brief was open and I made a call:
 
 ## Tests
 
-`npm test` runs 57 tests on the tricky logic:
+`npm test` runs 62 tests on the tricky logic:
 
 - **Brand input:** colours are normalised to `#rrggbb`, and the name length is capped.
 

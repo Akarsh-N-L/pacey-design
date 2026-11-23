@@ -46,3 +46,12 @@ export const NEUTRALS = ["#111111", "#ffffff"];
 export function textColors(colors: string[]): string[] {
   return paletteProblem(colors) ? [...new Set([...colors, ...NEUTRALS])] : colors;
 }
+
+/** Readable text-on-background combinations (4.5:1 or more), best first. Backgrounds are brand colours only. */
+export function readablePairs(colors: string[]): string[] {
+  return textColors(colors)
+    .flatMap((text) => colors.filter((bg) => bg !== text).map((bg) => ({ text, bg, ratio: contrastRatio(text, bg) })))
+    .filter((p) => p.ratio >= 4.5)
+    .sort((x, y) => y.ratio - x.ratio)
+    .map((p) => `text ${p.text} on background ${p.bg} (${p.ratio.toFixed(1)}:1)`);
+}

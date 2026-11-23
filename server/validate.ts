@@ -1,4 +1,4 @@
-import { contrastRatio, textColors } from "./contrast";
+import { contrastRatio, readablePairs, textColors } from "./contrast";
 import { Brand, normalizeHex, Plan } from "./schema";
 
 /** "malformed" = wrong shape (missing fields, wrong types); "invalid" = right shape, breaks a brand rule. */
@@ -44,6 +44,20 @@ export function inventedFacts(text: string, source: string): string[] {
   return [...new Set([...nums, ...dayWords, ...contacts])];
 }
 
+const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/** The facts a source (request + brand name) gives, as the model should be told them. */
+export function factsIn(source: string): string {
+  const found = [
+    ...[...source.matchAll(DAY_RE)].filter((m) => m[1] || /^[A-Z]/.test(m[2])).map((m) => m[0]),
+    ...numbers(source),
+    ...(source.match(CONTACT_RE) ?? []),
+  ];
+  return found.length
+    ? `${[...new Set(found)].join(", ")}. Do not add any other days, dates, times, numbers, prices or links.`
+    : "none. So write NO days, dates, times, numbers, prices or links at all.";
+}
+
 /** Reasons are plain sentences: they are fed straight back to the model on repair. */
 export function validatePlan(raw: unknown, brand: Brand, request: string): Validation {
   const parsed = Plan.safeParse(raw);
@@ -73,9 +87,10 @@ export function validatePlan(raw: unknown, brand: Brand, request: string): Valid
     if (bad.length) {
       reasons.push(`${field} contains characters the brand fonts can't draw: ${bad.join(" ")}. Write in English with plain letters and punctuation only, no emoji.`);
     }
-    const invented = inventedFacts(plan[field], `${request} ${brand.name}`);
+    // The brand name may appear in copy ("Sunday Brunch Co"), but its words aren't facts ("Sunday").
+    const invented = inventedFacts(plan[field].replace(new RegExp(escapeRe(brand.name), "gi"), ""), request);
     if (invented.length) {
-      reasons.push(`${field} mentions ${invented.map((x) => `"${x}"`).join(", ")}, which the request never gave. Only use facts from the request; never invent dates, times, prices, numbers or contact details.`);
+      reasons.push(`${field} mentions ${invented.map((x) => `"${x}"`).join(", ")}, which the request never gave. Rewrite ${field} without them. Facts you may use: ${factsIn(request)}`);
     }
   }
   // Only check colour relationships once the colours themselves are valid.
@@ -86,7 +101,7 @@ export function validatePlan(raw: unknown, brand: Brand, request: string): Valid
     const ratio = contrastRatio(plan.colors.text, plan.colors.background);
     if (ratio < 4.5) {
       reasons.push(
-        `text ${plan.colors.text} on background ${plan.colors.background} has contrast ${ratio.toFixed(2)}:1; need at least 4.5:1. Pick a text colour that differs more in lightness.`,
+        `text ${plan.colors.text} on background ${plan.colors.background} has contrast ${ratio.toFixed(2)}:1; need at least 4.5:1. Pick text and background from one of these readable combinations: ${readablePairs(brand.colors).join("; ")}.`,
       );
     }
   }
