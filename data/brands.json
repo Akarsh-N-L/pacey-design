@@ -1,0 +1,30 @@
+[
+  {
+    "name": "Launch event of gym",
+    "colors": [
+      "#111111",
+      "#ff0000",
+      "#00ff33",
+      "#e1dbdb"
+    ],
+    "fonts": [
+      "Playfair Display",
+      "Playfair Display"
+    ],
+    "voice": "Exciting"
+  },
+  {
+    "name": "Sunday Brunch Co",
+    "colors": [
+      "#1a1a1a",
+      "#fff7ed",
+      "#f97316",
+      "#fdba74"
+    ],
+    "fonts": [
+      "Playfair Display",
+      "Inter"
+    ],
+    "voice": "warm, playful, a little cheeky"
+  }
+]

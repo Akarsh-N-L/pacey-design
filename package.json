@@ -1,0 +1,31 @@
+{
+  "name": "pacey-design-engine",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "trap 'kill 0' INT TERM EXIT; npm run server & vite",
+    "server": "tsx watch server/index.ts",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "plan": "tsx server/try-plan.ts",
+    "preview": "tsx server/try-render.ts"
+  },
+  "dependencies": {
+    "express": "^5.3.0",
+    "playwright": "^1.65.1",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.3.0",
+    "tsx": "^4.23.15",
+    "typescript": "^5.6.0",
+    "vite": "^8.3.8",
+    "vitest": "^5.1.1"
+  }
+}
