@@ -1,8 +1,4 @@
-import express, {
-  type NextFunction,
-  type Request,
-  type Response,
-} from "express";
+import express, { type NextFunction, type Request, type Response } from "express";
 import { z } from "zod";
 import { deleteBrand, listBrands, saveBrand } from "./brands";
 import { fontFaceCss } from "./fonts";
@@ -16,10 +12,7 @@ app.use(express.json({ limit: "100kb" }));
 class BadRequest extends Error {}
 function parse<T>(schema: z.ZodType<T>, body: unknown): T {
   const r = schema.safeParse(body);
-  if (!r.success)
-    throw new BadRequest(
-      r.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; "),
-    );
+  if (!r.success) throw new BadRequest(r.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; "));
   return r.data;
 }
 
@@ -33,61 +26,32 @@ async function checkFonts(brand: Brand) {
 }
 
 app.get("/api/brands", async (_req, res) => {
-  try {
-    res.json(await listBrands());
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: (err as Error).message });
-  }
+  res.json(await listBrands());
 });
 
 app.post("/api/brands", async (req, res) => {
-  try {
-    const brand = parse(Brand, req.body);
-    await checkFonts(brand);
-    res.json(await saveBrand(brand));
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: (err as Error).message });
-  }
+  const brand = parse(Brand, req.body);
+  await checkFonts(brand);
+  res.json(await saveBrand(brand));
 });
 
 app.delete("/api/brands/:name", async (req, res) => {
-  try {
-    res.json(await deleteBrand(req.params.name));
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: (err as Error).message });
-  }
+  res.json(await deleteBrand(req.params.name));
 });
 
-const GenerateBody = z.object({
-  brand: Brand,
-  request: z.string().trim().min(3).max(300),
-  layout: z.enum(LAYOUTS).optional(),
-});
+const GenerateBody = z.object({ brand: Brand, request: z.string().trim().min(3).max(300), layout: z.enum(LAYOUTS).optional() });
 
 app.post("/api/generate", async (req, res) => {
-  try {
-    const { brand, request, layout } = parse(GenerateBody, req.body);
-    await checkFonts(brand);
-    const started = Date.now();
-    const result = await generateDesign(brand, request, undefined, layout);
-    console.log(
-      `generate "${request}" -> ${result.stage} ok=${result.ok} retries=${result.attempts.length} ${Date.now() - started}ms`,
-    );
-    res.json(result);
-  } catch (err) {
-    console.log(
-      `generate "${req.body.request}" failed: ${(err as Error).message}`,
-    );
-    res.status(500).json({ error: (err as Error).message });
-  }
+  const { brand, request, layout } = parse(GenerateBody, req.body);
+  await checkFonts(brand);
+  const started = Date.now();
+  const result = await generateDesign(brand, request, undefined, layout);
+  console.log(`generate "${request}" -> ${result.stage} ok=${result.ok} retries=${result.attempts.length} ${Date.now() - started}ms`);
+  res.json(result);
 });
 
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
-  if (err instanceof BadRequest)
-    return void res.status(400).json({ error: err.message });
+  if (err instanceof BadRequest) return void res.status(400).json({ error: err.message });
   console.error(err);
   // Most likely Ollama is down or a font failed: say so rather than a bare 500.
   res.status(502).json({ error: err.message });
